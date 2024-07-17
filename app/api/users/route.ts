@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server"
-import connect from "@/lib/db"
-import User from "@/lib/models/user"
+import connect from "@/lib/db";
+import User from "@/lib/models/user";
+import { NextResponse } from "next/server";
 
-export const Get = async() => {
+export const GET = async () => {
   try{
     await connect();
     const users = await User.find();
