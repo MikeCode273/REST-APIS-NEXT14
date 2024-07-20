@@ -74,9 +74,8 @@ export const PATCH = async (request: Request) => {
 
 export const DELETE = async (request: Request) => {
   try{
-    const body = await request.json();
-    const {userId} = body;
-    await connect();
+    const {searchParams} = new URL(request.url);
+    const userId = searchParams.get('userId');
 
     if (!userId) {
       return new NextResponse(
@@ -89,6 +88,8 @@ export const DELETE = async (request: Request) => {
     if(!Types.ObjectId.isValid(userId)){
       return new NextResponse(JSON.stringify({message: "Invalid userId"}),{status:400});
     }
+
+    await connect()
 
     const deletedUser = await User.findByIdAndDelete(new ObjectId(userId));
 
