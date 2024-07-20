@@ -1,6 +1,11 @@
 import connect from "@/lib/db";
 import User from "@/lib/models/user";
+import { Types } from "mongoose";
 import { NextResponse } from "next/server";
+
+
+
+const ObjectId = require('mongoose').Types.ObjectId;
 
 export const GET = async () => {
   try{
@@ -34,7 +39,71 @@ export const PATCH = async (request: Request) => {
     const {userId, newUsername} = body;
     await connect();
 
-  } catch(error : any){
-    return new NextResponse("Error in updating user"+ error.message,{status:500,});
+    if (!userId || !newUsername) {
+      return new NextResponse(
+        JSON.stringify({ message: "Please provide userId and newUsername" }),
+        { status: 400 }
+      
+      );
+    }
+
+    if(!Types.ObjectId.isValid(userId)){
+      return new NextResponse(JSON.stringify({message: "Invalid userId"}),{status:400});
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      {_Id: new ObjectId(userId)},
+      {username: newUsername},
+      {new: true}
+    );
+
+    if(!updatedUser){
+      return new NextResponse(JSON.stringify({message: "User not found"}),{status:400});
+    }
+
+  
+    return new NextResponse(JSON.stringify({message: "User is updated", user: updatedUser }),{status:200});
+
+  } catch(error : any){ 
+    return new NextResponse("Error in updating user"+ error.message,{
+      status:500,
+    });
   }
 };
+
+
+export const DELETE = async (request: Request) => {
+  try{
+    const body = await request.json();
+    const {userId} = body;
+    await connect();
+
+    if (!userId) {
+      return new NextResponse(
+        JSON.stringify({ message: "Please provide userId" }),
+        { status: 400 }
+      
+      );
+    }
+
+    if(!Types.ObjectId.isValid(userId)){
+      return new NextResponse(JSON.stringify({message: "Invalid userId"}),{status:400});
+    }
+
+    const deletedUser = await User.findByIdAndDelete(new ObjectId(userId));
+
+    if(!deletedUser){
+      return new NextResponse(JSON.stringify({message: "User not found"}),{status:400});
+    }
+
+  
+    return new NextResponse(JSON.stringify({message: "User is deleted", user: deletedUser }),{status:200});
+
+  } catch(error : any){ 
+    return new NextResponse("Error in deleting user"+ error.message,{
+      status:500,
+    });
+  }
+}
+
+
