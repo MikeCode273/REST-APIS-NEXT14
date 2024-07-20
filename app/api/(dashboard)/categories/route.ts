@@ -45,3 +45,46 @@ export const GET = async (request: Request) => {
     });
   }
 }
+
+
+export const POST =  async(request: Request) => {
+  try{
+    const {searchParams} = new URL(request.url);
+    const userId = searchParams.get('userId');
+
+    const {title} = await request.json();
+
+    if(!userId){
+      return new NextResponse(
+        JSON.stringify({message: "User not found in the database"}),
+        {
+          status: 400
+        }
+      );
+    }
+
+    await connect();
+
+    const user = await User.findById(userId);
+    if (!user){
+      return new NextResponse(JSON.stringify({MESSAGE: "User not found"}),{
+        status: 404,
+      });
+    }
+    const newCategory = new Category({
+      title,
+      user: new Types.ObjectId(userId),
+    });
+
+    await newCategory.save();
+
+    return new NextResponse(
+      JSON.stringify({message: "Category is created", category: newCategory}),{status: 200}
+    )
+
+  }catch(error: any){
+    return new NextResponse("Error in deleting user"+ error.message,{
+      status:500,
+    });
+  }
+}
